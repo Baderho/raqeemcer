@@ -254,6 +254,10 @@
     background: var(--gradient-hero);
   }
 
+  .bg-gradient-radial {
+    background: radial-gradient(circle, var(--tw-gradient-stops));
+  }
+
   .animate-fade-in {
     animation: fadeIn 0.5s ease-out;
   }
@@ -271,7 +275,12 @@
   }
 
   .animate-pulse-soft {
-    animation: pulseSoft 3s ease-in-out infinite;
+    animation: pulseSoft 4s ease-in-out infinite;
+  }
+
+  .animate-gradient {
+    animation: gradient 8s ease infinite;
+    background-size: 200% 200%;
   }
 
   @keyframes fadeIn {
@@ -308,6 +317,24 @@
 
   @keyframes pulseSoft {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
+    50% { opacity: 0.6; }
+  }
+
+  @keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* Glowing effect */
+  .glow {
+    box-shadow: 0 0 20px hsla(174, 62%, 47%, 0.3),
+                0 0 40px hsla(174, 62%, 47%, 0.2),
+                0 0 60px hsla(174, 62%, 47%, 0.1);
+  }
+
+  .glow-text {
+    text-shadow: 0 0 10px hsla(174, 62%, 47%, 0.5),
+                 0 0 20px hsla(174, 62%, 47%, 0.3);
   }
 }
