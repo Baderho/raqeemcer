@@ -124,8 +124,8 @@ const defaultElements: PositionedElement[] = [
 const defaultConfig: CertificateConfig = {
   courseTitle: '',
   certificateIdPrefix: 'CERT',
-  fixedSentence: 'has successfully attended a training workshop entitled',
-  verificationBaseUrl: 'https://verify.example.com/certificate/',
+  fixedSentence: 'قد أتم بنجاح حضور الدورة التدريبية / ورشة العمل بعنوان',
+  verificationBaseUrl: '/verify?id=',
 };
 
 const defaultProgress: GenerationProgress = {
