@@ -239,18 +239,18 @@ const CertificatesDisplay: React.FC = () => {
 
                           <div className="flex flex-wrap gap-3">
                             <Button
-                              variant="outline"
                               size="sm"
-                              onClick={() => navigate(`/verify?id=${cert.certificate_id}`)}
-                              className="border-primary/30 hover:border-primary hover:bg-primary/10"
+                              className="bg-gradient-to-l from-primary to-cyan-500 hover:opacity-90"
+                              onClick={() => navigate(`/certificate/${cert.certificate_id}`)}
                             >
                               <Eye className="w-4 h-4 ml-1" />
-                              التحقق
+                              عرض التفاصيل
                             </Button>
                             {cert.pdf_url && (
                               <Button
+                                variant="outline"
                                 size="sm"
-                                className="bg-gradient-to-l from-primary to-cyan-500 hover:opacity-90"
+                                className="border-primary/30 hover:border-primary hover:bg-primary/10"
                                 onClick={() => handleDownloadClick(cert)}
                               >
                                 <Download className="w-4 h-4 ml-1" />
