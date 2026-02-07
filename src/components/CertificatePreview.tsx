@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Download, FileDown, Loader2, CheckCircle, AlertCircle, Eye, Save } from 'lucide-react';
+import { Download, FileDown, Loader2, CheckCircle, AlertCircle, Eye, Save, Cloud } from 'lucide-react';
 import { useCertificateStore } from '@/hooks/useCertificateStore';
 import { supabase } from '@/integrations/supabase/client';
 import QRCode from 'qrcode';
@@ -13,6 +13,7 @@ export const CertificatePreview: React.FC = () => {
   const { toast } = useToast();
   const [selectedParticipant, setSelectedParticipant] = useState(0);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isSavingToCloud, setIsSavingToCloud] = useState(false);
 
   const currentParticipant = participants[selectedParticipant];
 
@@ -218,9 +219,76 @@ export const CertificatePreview: React.FC = () => {
     }
   };
 
-  // Save certificates to database
+  // Save certificates to database with PDF upload
+  const saveCertificatesToCloud = async () => {
+    setIsSavingToCloud(true);
+    setProgress({ status: 'processing', total: participants.length, completed: 0, current: 'جاري الرفع إلى السحابة...' });
+    
+    try {
+      for (let i = 0; i < participants.length; i++) {
+        const participant = participants[i];
+        setProgress({ current: `${participant.name} - إنشاء PDF...`, completed: i });
+        
+        // Generate PDF
+        const pdfBlob = await generateCertificatePDF(participant);
+        
+        // Upload to storage
+        const fileName = `${participant.certificateId}.pdf`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('certificates')
+          .upload(fileName, pdfBlob, {
+            contentType: 'application/pdf',
+            upsert: true
+          });
+
+        if (uploadError) {
+          console.error('Upload error:', uploadError);
+          throw uploadError;
+        }
+
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from('certificates')
+          .getPublicUrl(fileName);
+
+        // Save to database
+        const { error: dbError } = await supabase
+          .from('certificates')
+          .insert({
+            participant_name: participant.name,
+            course_title: config.courseTitle,
+            certificate_id: participant.certificateId,
+            pdf_url: urlData.publicUrl,
+            qr_verification_url: `${config.verificationBaseUrl}${participant.certificateId}`,
+          });
+
+        if (dbError) {
+          console.error('DB error:', dbError);
+          throw dbError;
+        }
+      }
+
+      setProgress({ status: 'completed', completed: participants.length });
+      toast({
+        title: 'تم الحفظ بنجاح ☁️',
+        description: `تم رفع ${participants.length} شهادة PDF إلى السحابة وحفظها في قاعدة البيانات`,
+      });
+    } catch (error) {
+      console.error('Error saving certificates to cloud:', error);
+      setProgress({ status: 'error', error: 'فشل في رفع الشهادات' });
+      toast({
+        title: 'خطأ في الرفع',
+        description: 'فشل في رفع الشهادات إلى السحابة',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSavingToCloud(false);
+    }
+  };
+
+  // Save certificates to database only (without PDF upload)
   const saveCertificatesToDatabase = async () => {
-    setProgress({ status: 'processing', total: participants.length, completed: 0, current: 'Saving to database...' });
+    setProgress({ status: 'processing', total: participants.length, completed: 0, current: 'جاري الحفظ...' });
     
     try {
       const certificateRecords = participants.map((participant) => ({
@@ -261,13 +329,13 @@ export const CertificatePreview: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in" dir="rtl">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-display font-bold text-foreground mb-2">
-          Preview & Generate
+          معاينة وإنشاء الشهادات
         </h2>
         <p className="text-muted-foreground">
-          Preview certificates and download them individually or as a batch
+          معاينة الشهادات وتحميلها فردياً أو دفعة واحدة
         </p>
       </div>
 
@@ -277,8 +345,8 @@ export const CertificatePreview: React.FC = () => {
           <div className="glass-panel p-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-foreground flex items-center gap-2">
-                <Eye className="w-5 h-5 text-accent" />
-                Certificate Preview
+                <Eye className="w-5 h-5 text-primary" />
+                معاينة الشهادة
               </h3>
               <div className="flex items-center gap-2">
                 <button
@@ -286,7 +354,7 @@ export const CertificatePreview: React.FC = () => {
                   disabled={selectedParticipant === 0}
                   className="p-2 rounded-lg hover:bg-muted disabled:opacity-50 transition-colors"
                 >
-                  ←
+                  →
                 </button>
                 <span className="text-sm text-muted-foreground">
                   {selectedParticipant + 1} / {participants.length}
@@ -296,7 +364,7 @@ export const CertificatePreview: React.FC = () => {
                   disabled={selectedParticipant === participants.length - 1}
                   className="p-2 rounded-lg hover:bg-muted disabled:opacity-50 transition-colors"
                 >
-                  →
+                  ←
                 </button>
               </div>
             </div>
@@ -305,7 +373,7 @@ export const CertificatePreview: React.FC = () => {
               {previewImage ? (
                 <img
                   src={previewImage}
-                  alt="Certificate preview"
+                  alt="معاينة الشهادة"
                   className="w-full h-auto"
                 />
               ) : (
@@ -322,10 +390,10 @@ export const CertificatePreview: React.FC = () => {
         {/* Actions */}
         <div className="space-y-4">
           <div className="glass-panel p-6 space-y-4">
-            <h3 className="font-semibold text-foreground">Current Certificate</h3>
+            <h3 className="font-semibold text-foreground">الشهادة الحالية</h3>
             <div className="p-4 bg-muted/50 rounded-lg">
               <p className="font-medium text-foreground">{currentParticipant?.name}</p>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-muted-foreground mt-1 font-mono" dir="ltr">
                 {currentParticipant?.certificateId}
               </p>
             </div>
@@ -335,25 +403,25 @@ export const CertificatePreview: React.FC = () => {
               className="w-full gold-button flex items-center justify-center gap-2"
             >
               <Download className="w-4 h-4" />
-              Download This Certificate
+              تحميل هذه الشهادة
             </button>
           </div>
 
           <div className="glass-panel p-6 space-y-4">
-            <h3 className="font-semibold text-foreground">Batch Download</h3>
+            <h3 className="font-semibold text-foreground">تحميل دفعة واحدة</h3>
             <p className="text-sm text-muted-foreground">
-              Generate and download all {participants.length} certificates as a ZIP file.
+              إنشاء وتحميل جميع الـ {participants.length} شهادة كملف ZIP.
             </p>
 
             {progress.status === 'processing' && (
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Generating: {progress.current}</span>
+                  <span>{progress.current}</span>
                 </div>
                 <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-accent transition-all duration-300"
+                    className="h-full bg-primary transition-all duration-300"
                     style={{ width: `${(progress.completed / progress.total) * 100}%` }}
                   />
                 </div>
@@ -364,9 +432,9 @@ export const CertificatePreview: React.FC = () => {
             )}
 
             {progress.status === 'completed' && (
-              <div className="flex items-center gap-2 text-sm text-accent">
+              <div className="flex items-center gap-2 text-sm text-primary">
                 <CheckCircle className="w-4 h-4" />
-                <span>All certificates generated!</span>
+                <span>تم إنشاء جميع الشهادات!</span>
               </div>
             )}
 
@@ -383,26 +451,49 @@ export const CertificatePreview: React.FC = () => {
               className="w-full navy-button flex items-center justify-center gap-2"
             >
               <FileDown className="w-4 h-4" />
-              Download All as ZIP
+              تحميل الكل كـ ZIP
             </button>
           </div>
 
-          {/* Save to Database */}
-          <div className="glass-panel p-6 space-y-4">
+          {/* Save to Cloud with PDF */}
+          <div className="glass-panel p-6 space-y-4 border-2 border-primary/20">
             <h3 className="font-semibold text-foreground flex items-center gap-2">
-              <Save className="w-5 h-5 text-accent" />
-              حفظ في قاعدة البيانات
+              <Cloud className="w-5 h-5 text-primary" />
+              حفظ في السحابة مع PDF
             </h3>
             <p className="text-sm text-muted-foreground">
-              احفظ جميع الشهادات في قاعدة البيانات ليتمكن المشاركون من البحث عنها.
+              رفع الشهادات كملفات PDF وحفظها في قاعدة البيانات ليتمكن المشاركون من تحميلها.
+            </p>
+            <button
+              onClick={saveCertificatesToCloud}
+              disabled={progress.status === 'processing' || isSavingToCloud}
+              className="w-full raqeem-button flex items-center justify-center gap-2"
+            >
+              {isSavingToCloud ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Cloud className="w-4 h-4" />
+              )}
+              رفع {participants.length} شهادة PDF
+            </button>
+          </div>
+
+          {/* Save to Database Only */}
+          <div className="glass-panel p-6 space-y-4">
+            <h3 className="font-semibold text-foreground flex items-center gap-2">
+              <Save className="w-5 h-5 text-primary" />
+              حفظ بدون PDF
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              حفظ بيانات الشهادات فقط (بدون ملفات PDF).
             </p>
             <button
               onClick={saveCertificatesToDatabase}
               disabled={progress.status === 'processing'}
-              className="w-full gold-button flex items-center justify-center gap-2"
+              className="w-full navy-button flex items-center justify-center gap-2"
             >
               <Save className="w-4 h-4" />
-              حفظ {participants.length} شهادة
+              حفظ البيانات فقط
             </button>
           </div>
         </div>
@@ -414,7 +505,7 @@ export const CertificatePreview: React.FC = () => {
           onClick={() => setCurrentStep(3)}
           className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
         >
-          ← Back to Data
+          ← العودة للبيانات
         </button>
       </div>
     </div>

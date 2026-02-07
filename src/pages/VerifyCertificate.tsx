@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Search, CheckCircle, XCircle, Loader2, Award, Calendar, User, Hash, ArrowRight, ShieldCheck } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Search, CheckCircle, XCircle, Loader2, Award, Calendar, User, Hash, ArrowRight, ShieldCheck, Heart, Instagram } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -71,6 +72,12 @@ const VerifyCertificate: React.FC = () => {
     });
   };
 
+  const fadeInUp = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.5 }
+  };
+
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       {/* Header */}
@@ -104,69 +111,100 @@ const VerifyCertificate: React.FC = () => {
       <main className="container mx-auto px-4 py-8 sm:py-12">
         <div className="max-w-2xl mx-auto">
           {/* Title */}
-          <div className="text-center mb-8 sm:mb-12">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-raqeem flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg">
-              <ShieldCheck className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
-            </div>
+          <motion.div 
+            className="text-center mb-8 sm:mb-12"
+            initial="initial"
+            animate="animate"
+            variants={fadeInUp}
+          >
+            <motion.div 
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-raqeem flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg"
+              animate={{ 
+                boxShadow: [
+                  '0 4px 25px -4px hsla(187, 85%, 35%, 0.35)',
+                  '0 8px 35px -4px hsla(187, 85%, 35%, 0.5)',
+                  '0 4px 25px -4px hsla(187, 85%, 35%, 0.35)',
+                ]
+              }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <ShieldCheck className="w-8 h-8 sm:w-10 sm:h-10 text-primary-foreground" />
+            </motion.div>
             <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
               التحقق من صحة الشهادة
             </h2>
             <p className="text-muted-foreground text-sm sm:text-base">
               أدخل رقم الشهادة للتحقق من صحتها وصلاحيتها
             </p>
-          </div>
+          </motion.div>
 
           {/* Search Form */}
-          <Card className="glass-panel-strong mb-6">
-            <CardContent className="p-4 sm:p-6">
-              <form onSubmit={handleSearch} className="space-y-4">
-                <div className="relative">
-                  <Input
-                    type="text"
-                    placeholder="أدخل رقم الشهادة (مثل: CERT-ABC123)"
-                    value={certificateId}
-                    onChange={(e) => setCertificateId(e.target.value)}
-                    className="h-12 sm:h-14 text-base sm:text-lg pr-12 rounded-xl border-2 focus:border-primary"
-                    dir="ltr"
-                  />
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                    <Hash className="w-5 h-5 text-muted-foreground" />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <Card className="glass-panel-strong mb-6">
+              <CardContent className="p-4 sm:p-6">
+                <form onSubmit={handleSearch} className="space-y-4">
+                  <div className="relative">
+                    <Input
+                      type="text"
+                      placeholder="أدخل رقم الشهادة (مثل: RQM-ABC12345)"
+                      value={certificateId}
+                      onChange={(e) => setCertificateId(e.target.value)}
+                      className="h-12 sm:h-14 text-base sm:text-lg pr-12 rounded-xl border-2 focus:border-primary"
+                      dir="ltr"
+                    />
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                      <Hash className="w-5 h-5 text-muted-foreground" />
+                    </div>
                   </div>
-                </div>
-                <Button
-                  type="submit"
-                  disabled={!certificateId.trim() || isLoading}
-                  className="w-full h-12 raqeem-button text-base"
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin ml-2" />
-                      جاري التحقق...
-                    </>
-                  ) : (
-                    <>
-                      <Search className="w-5 h-5 ml-2" />
-                      تحقق من الشهادة
-                    </>
-                  )}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+                  <Button
+                    type="submit"
+                    disabled={!certificateId.trim() || isLoading}
+                    className="w-full h-12 raqeem-button text-base"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin ml-2" />
+                        جاري التحقق...
+                      </>
+                    ) : (
+                      <>
+                        <Search className="w-5 h-5 ml-2" />
+                        تحقق من الشهادة
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* Result */}
           {hasSearched && !isLoading && (
-            <div className="animate-fade-in">
+            <motion.div 
+              className="animate-fade-in"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+            >
               {certificate ? (
                 <Card className="glass-panel-strong border-primary/30 overflow-hidden">
                   <div className="bg-gradient-raqeem p-4 sm:p-6">
-                    <div className="flex items-center gap-3 text-white">
-                      <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                    <div className="flex items-center gap-3 text-primary-foreground">
+                      <motion.div 
+                        className="w-12 h-12 rounded-full bg-primary-foreground/20 flex items-center justify-center"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 200, damping: 10 }}
+                      >
                         <CheckCircle className="w-6 h-6" />
-                      </div>
+                      </motion.div>
                       <div>
                         <h3 className="font-bold text-lg">شهادة صالحة ✓</h3>
-                        <p className="text-white/80 text-sm">تم التحقق من صحة هذه الشهادة</p>
+                        <p className="text-primary-foreground/80 text-sm">تم التحقق من صحة هذه الشهادة</p>
                       </div>
                     </div>
                   </div>
@@ -206,9 +244,14 @@ const VerifyCertificate: React.FC = () => {
               ) : notFound ? (
                 <Card className="glass-panel-strong border-destructive/30">
                   <CardContent className="p-6 sm:p-8 text-center">
-                    <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-4">
+                    <motion.div 
+                      className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-4"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 200, damping: 10 }}
+                    >
                       <XCircle className="w-8 h-8 text-destructive" />
-                    </div>
+                    </motion.div>
                     <h3 className="font-bold text-lg text-foreground mb-2">
                       لم يتم العثور على الشهادة
                     </h3>
@@ -218,17 +261,36 @@ const VerifyCertificate: React.FC = () => {
                   </CardContent>
                 </Card>
               ) : null}
-            </div>
+            </motion.div>
           )}
         </div>
       </main>
 
       {/* Footer */}
       <footer className="border-t border-border py-6 mt-auto">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} منصة رقيم التعليمية
-          </p>
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+              <span>من إبداعات</span>
+              <a href="https://nahno.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                منصة نحن
+              </a>
+              <Heart className="w-3 h-3 text-red-500 fill-red-500" />
+            </div>
+            <div className="flex items-center gap-4">
+              <a
+                href="https://www.instagram.com/raqeem_jo/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-pink-500 transition-colors"
+              >
+                <Instagram className="w-5 h-5" />
+              </a>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              © {new Date().getFullYear()} منصة رقيم التعليمية
+            </p>
+          </div>
         </div>
       </footer>
     </div>
