@@ -1,13 +1,16 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Download, FileDown, Loader2, CheckCircle, AlertCircle, Eye } from 'lucide-react';
+import { Download, FileDown, Loader2, CheckCircle, AlertCircle, Eye, Save } from 'lucide-react';
 import { useCertificateStore } from '@/hooks/useCertificateStore';
+import { supabase } from '@/integrations/supabase/client';
 import QRCode from 'qrcode';
 import { jsPDF } from 'jspdf';
 import JSZip from 'jszip';
+import { useToast } from '@/hooks/use-toast';
 
 export const CertificatePreview: React.FC = () => {
   const { template, participants, config, progress, setProgress, setCurrentStep } = useCertificateStore();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { toast } = useToast();
   const [selectedParticipant, setSelectedParticipant] = useState(0);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
