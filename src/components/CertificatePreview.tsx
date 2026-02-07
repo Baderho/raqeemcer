@@ -386,6 +386,25 @@ export const CertificatePreview: React.FC = () => {
               Download All as ZIP
             </button>
           </div>
+
+          {/* Save to Database */}
+          <div className="glass-panel p-6 space-y-4">
+            <h3 className="font-semibold text-foreground flex items-center gap-2">
+              <Save className="w-5 h-5 text-accent" />
+              حفظ في قاعدة البيانات
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              احفظ جميع الشهادات في قاعدة البيانات ليتمكن المشاركون من البحث عنها.
+            </p>
+            <button
+              onClick={saveCertificatesToDatabase}
+              disabled={progress.status === 'processing'}
+              className="w-full gold-button flex items-center justify-center gap-2"
+            >
+              <Save className="w-4 h-4" />
+              حفظ {participants.length} شهادة
+            </button>
+          </div>
         </div>
       </div>
 
