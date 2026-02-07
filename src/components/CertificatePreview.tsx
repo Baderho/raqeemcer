@@ -218,6 +218,40 @@ export const CertificatePreview: React.FC = () => {
     }
   };
 
+  // Save certificates to database
+  const saveCertificatesToDatabase = async () => {
+    setProgress({ status: 'processing', total: participants.length, completed: 0, current: 'Saving to database...' });
+    
+    try {
+      const certificateRecords = participants.map((participant) => ({
+        participant_name: participant.name,
+        course_title: config.courseTitle,
+        certificate_id: participant.certificateId,
+        qr_verification_url: `${config.verificationBaseUrl}${participant.certificateId}`,
+      }));
+
+      const { error } = await supabase
+        .from('certificates')
+        .insert(certificateRecords);
+
+      if (error) throw error;
+
+      setProgress({ status: 'completed', completed: participants.length });
+      toast({
+        title: 'تم الحفظ بنجاح',
+        description: `تم حفظ ${participants.length} شهادة في قاعدة البيانات`,
+      });
+    } catch (error) {
+      console.error('Error saving certificates:', error);
+      setProgress({ status: 'error', error: 'Failed to save certificates to database' });
+      toast({
+        title: 'خطأ في الحفظ',
+        description: 'فشل في حفظ الشهادات في قاعدة البيانات',
+        variant: 'destructive',
+      });
+    }
+  };
+
   if (!template || participants.length === 0) {
     return (
       <div className="text-center py-12">
