@@ -1,13 +1,16 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Download, FileDown, Loader2, CheckCircle, AlertCircle, Eye } from 'lucide-react';
+import { Download, FileDown, Loader2, CheckCircle, AlertCircle, Eye, Save } from 'lucide-react';
 import { useCertificateStore } from '@/hooks/useCertificateStore';
+import { supabase } from '@/integrations/supabase/client';
 import QRCode from 'qrcode';
 import { jsPDF } from 'jspdf';
 import JSZip from 'jszip';
+import { useToast } from '@/hooks/use-toast';
 
 export const CertificatePreview: React.FC = () => {
   const { template, participants, config, progress, setProgress, setCurrentStep } = useCertificateStore();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { toast } = useToast();
   const [selectedParticipant, setSelectedParticipant] = useState(0);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
@@ -215,6 +218,40 @@ export const CertificatePreview: React.FC = () => {
     }
   };
 
+  // Save certificates to database
+  const saveCertificatesToDatabase = async () => {
+    setProgress({ status: 'processing', total: participants.length, completed: 0, current: 'Saving to database...' });
+    
+    try {
+      const certificateRecords = participants.map((participant) => ({
+        participant_name: participant.name,
+        course_title: config.courseTitle,
+        certificate_id: participant.certificateId,
+        qr_verification_url: `${config.verificationBaseUrl}${participant.certificateId}`,
+      }));
+
+      const { error } = await supabase
+        .from('certificates')
+        .insert(certificateRecords);
+
+      if (error) throw error;
+
+      setProgress({ status: 'completed', completed: participants.length });
+      toast({
+        title: 'تم الحفظ بنجاح',
+        description: `تم حفظ ${participants.length} شهادة في قاعدة البيانات`,
+      });
+    } catch (error) {
+      console.error('Error saving certificates:', error);
+      setProgress({ status: 'error', error: 'Failed to save certificates to database' });
+      toast({
+        title: 'خطأ في الحفظ',
+        description: 'فشل في حفظ الشهادات في قاعدة البيانات',
+        variant: 'destructive',
+      });
+    }
+  };
+
   if (!template || participants.length === 0) {
     return (
       <div className="text-center py-12">
@@ -347,6 +384,25 @@ export const CertificatePreview: React.FC = () => {
             >
               <FileDown className="w-4 h-4" />
               Download All as ZIP
+            </button>
+          </div>
+
+          {/* Save to Database */}
+          <div className="glass-panel p-6 space-y-4">
+            <h3 className="font-semibold text-foreground flex items-center gap-2">
+              <Save className="w-5 h-5 text-accent" />
+              حفظ في قاعدة البيانات
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              احفظ جميع الشهادات في قاعدة البيانات ليتمكن المشاركون من البحث عنها.
+            </p>
+            <button
+              onClick={saveCertificatesToDatabase}
+              disabled={progress.status === 'processing'}
+              className="w-full gold-button flex items-center justify-center gap-2"
+            >
+              <Save className="w-4 h-4" />
+              حفظ {participants.length} شهادة
             </button>
           </div>
         </div>
