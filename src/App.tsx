@@ -26,6 +26,7 @@ const App = () => (
           <Route path="/dashboard" element={<AdminDashboard />} />
           <Route path="/certgen" element={<CertGen />} />
           <Route path="/certificates/:name" element={<CertificatesDisplay />} />
+          <Route path="/certificate/:id" element={<CertificateDetails />} />
           <Route path="/verify" element={<VerifyCertificate />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
