@@ -8,6 +8,7 @@ import AdminGateway from "./pages/AdminGateway";
 import AdminDashboard from "./pages/AdminDashboard";
 import CertGen from "./pages/CertGen";
 import CertificatesDisplay from "./pages/CertificatesDisplay";
+import CertificateDetails from "./pages/CertificateDetails";
 import VerifyCertificate from "./pages/VerifyCertificate";
 import NotFound from "./pages/NotFound";
 
