@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import AdminGateway from "./pages/AdminGateway";
+import AdminDashboard from "./pages/AdminDashboard";
 import CertGen from "./pages/CertGen";
 import CertificatesDisplay from "./pages/CertificatesDisplay";
 import VerifyCertificate from "./pages/VerifyCertificate";
@@ -21,6 +22,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/admin" element={<AdminGateway />} />
+          <Route path="/dashboard" element={<AdminDashboard />} />
           <Route path="/certgen" element={<CertGen />} />
           <Route path="/certificates/:name" element={<CertificatesDisplay />} />
           <Route path="/verify" element={<VerifyCertificate />} />

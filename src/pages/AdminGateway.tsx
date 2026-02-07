@@ -22,7 +22,7 @@ const AdminGateway: React.FC = () => {
     setTimeout(() => {
       if (password === ADMIN_PASSWORD) {
         sessionStorage.setItem('adminAccess', 'true');
-        navigate('/certgen');
+        navigate('/dashboard');
       } else {
         setError('كلمة المرور غير صحيحة');
       }
